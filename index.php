@@ -20,7 +20,7 @@ $topItems = $pdo->query("
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Dashboard - Inventory Aset</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -55,11 +55,22 @@ $topItems = $pdo->query("
             box-shadow: 0 5px 15px rgba(0,0,0,0.08); margin-top: 20px;
         }
         .clock { width: 70px; height: 70px; background: white; border-radius: 50%; box-shadow: 0 0 10px rgba(0,0,0,0.2); margin-left: 15px; }
+        .table-responsive-custom {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
         @media (max-width: 768px) {
             .sidebar { width: 70px; }
             .sidebar .nav-link span { display: none; }
             .sidebar-header h4 { display: none; }
-            .main-content { margin-left: 70px; }
+            .main-content { margin-left: 70px; padding: 15px; }
+            .stat-card h3 { font-size: 1.4rem; }
+            .stat-card { padding: 15px; }
+            .clock { width: 50px; height: 50px; }
+        }
+        @media (max-width: 576px) {
+            .main-content { padding: 10px; }
+            .stat-card h3 { font-size: 1.2rem; }
         }
     </style>
 </head>
@@ -84,30 +95,37 @@ $topItems = $pdo->query("
 </div>
 
 <div class="main-content">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
         <h2><i class="fas fa-tachometer-alt me-2 text-primary"></i> Dashboard</h2>
-        <div class="d-flex align-items-center">
+        <div class="d-flex align-items-center mt-2 mt-sm-0">
             <canvas id="analogClock" class="clock" width="70" height="70"></canvas>
             <div class="dropdown ms-3">
                 <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown">
                     <i class="fas fa-user-circle"></i> <?= strtoupper($_SESSION['user']) ?> (<?= $role ?>)
                 </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="edit_profile.php"><i class="fas fa-user-edit"></i> Edit Profil</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                </ul>
             </div>
         </div>
     </div>
     
-    <div class="row g-4 mb-4">
-        <div class="col-md-3"><div class="stat-card" style="border-left-color: #4e73df;"><div class="d-flex justify-content-between"><div><small>Total Barang</small><h3><?= number_format($totalBarang) ?></h3></div><i class="fas fa-boxes fa-2x" style="color:#4e73df;"></i></div></div></div>
-        <div class="col-md-3"><div class="stat-card" style="border-left-color: #1cc88a;"><div class="d-flex justify-content-between"><div><small>Total Item</small><h3><?= number_format($totalItems) ?></h3></div><i class="fas fa-tags fa-2x" style="color:#1cc88a;"></i></div></div></div>
-        <div class="col-md-3"><div class="stat-card" style="border-left-color: #36b9cc;"><div class="d-flex justify-content-between"><div><small>Lokasi Terisi</small><h3><?= number_format($totalLokasi) ?></h3></div><i class="fas fa-building fa-2x" style="color:#36b9cc;"></i></div></div></div>
-        <div class="col-md-3"><div class="stat-card" style="border-left-color: #e74a3b;"><div class="d-flex justify-content-between"><div><small>Barang Rusak</small><h3><?= number_format($rusak) ?></h3></div><i class="fas fa-exclamation-triangle fa-2x" style="color:#e74a3b;"></i></div></div></div>
+    <div class="row g-4 mb-4 row-cols-1 row-cols-md-2 row-cols-xl-4">
+        <div class="col"><div class="stat-card" style="border-left-color: #4e73df;"><div class="d-flex justify-content-between"><div><small>Total Barang</small><h3><?= number_format($totalBarang) ?></h3></div><i class="fas fa-boxes fa-2x" style="color:#4e73df;"></i></div></div></div>
+        <div class="col"><div class="stat-card" style="border-left-color: #1cc88a;"><div class="d-flex justify-content-between"><div><small>Total Item</small><h3><?= number_format($totalItems) ?></h3></div><i class="fas fa-tags fa-2x" style="color:#1cc88a;"></i></div></div></div>
+        <div class="col"><div class="stat-card" style="border-left-color: #36b9cc;"><div class="d-flex justify-content-between"><div><small>Lokasi Terisi</small><h3><?= number_format($totalLokasi) ?></h3></div><i class="fas fa-building fa-2x" style="color:#36b9cc;"></i></div></div></div>
+        <div class="col"><div class="stat-card" style="border-left-color: #e74a3b;"><div class="d-flex justify-content-between"><div><small>Barang Rusak</small><h3><?= number_format($rusak) ?></h3></div><i class="fas fa-exclamation-triangle fa-2x" style="color:#e74a3b;"></i></div></div></div>
     </div>
     
     <div class="table-container">
         <h5><i class="fas fa-trophy text-warning"></i> 5 Barang dengan Stok Terbanyak</h5>
-        <div class="table-responsive">
+        <div class="table-responsive-custom">
             <table class="table table-hover">
-                <thead class="table-light"><tr><th>Barcode</th><th>Nama Barang</th><th>Kategori</th><th>Stok</th><th>Harga</th></tr></thead>
+                <thead class="table-light">
+                    <tr><th>Barcode</th><th>Nama Barang</th><th>Kategori</th><th>Stok</th><th>Harga</th></tr>
+                </thead>
                 <tbody>
                     <?php foreach($topItems as $item): ?>
                     <tr>

@@ -29,6 +29,7 @@ $rooms = $pdo->query("SELECT r.*, b.name as building_name FROM m_rooms r JOIN m_
 <html lang="id">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Master Data - Inventory Aset</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -55,11 +56,19 @@ $rooms = $pdo->query("SELECT r.*, b.name as building_name FROM m_rooms r JOIN m_
         }
         .nav-tabs .nav-link { color: #333; }
         .nav-tabs .nav-link.active { background: #00b4d8; color: white; border: none; }
+        .table-responsive-custom {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
         @media (max-width: 768px) {
             .sidebar { width: 70px; }
             .sidebar .nav-link span { display: none; }
             .sidebar-header h4 { display: none; }
-            .main-content { margin-left: 70px; }
+            .main-content { margin-left: 70px; padding: 15px; }
+        }
+        @media (max-width: 576px) {
+            .main-content { padding: 10px; }
+            .btn { font-size: 0.9rem; padding: 6px 12px; }
         }
     </style>
 </head>
@@ -79,7 +88,7 @@ $rooms = $pdo->query("SELECT r.*, b.name as building_name FROM m_rooms r JOIN m_
 </div>
 <div class="main-content">
     <h2 class="mb-4"><i class="fas fa-database me-2 text-primary"></i> Master Data</h2>
-    <ul class="nav nav-tabs">
+    <ul class="nav nav-tabs flex-nowrap overflow-auto">
         <li class="nav-item"><a class="nav-link <?= $tab=='item_types'?'active':'' ?>" href="?tab=item_types">Item Types</a></li>
         <li class="nav-item"><a class="nav-link <?= $tab=='items'?'active':'' ?>" href="?tab=items">Items</a></li>
         <li class="nav-item"><a class="nav-link <?= $tab=='buildings'?'active':'' ?>" href="?tab=buildings">Buildings</a></li>
@@ -88,29 +97,45 @@ $rooms = $pdo->query("SELECT r.*, b.name as building_name FROM m_rooms r JOIN m_
     <div class="table-container">
         <?php if($tab == 'item_types'): ?>
             <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#modalItemType">+ Tambah Item Type</button>
-            <table class="table table-bordered"><thead class="table-light"><tr><th>ID</th><th>Nama</th><th>Aksi</th></tr></thead>
-            <tbody><?php foreach($itemTypes as $row): ?><tr><td><?= $row['id'] ?></td><td><?= $row['name'] ?></td><td><a href="?delete_item_type=<?= $row['id'] ?>&tab=item_types" class="btn btn-sm btn-danger" onclick="return confirm('Hapus?')">Hapus</a></td></tr><?php endforeach; ?></tbody></table>
+            <div class="table-responsive-custom">
+                <table class="table table-bordered">
+                    <thead class="table-light"><tr><th>ID</th><th>Nama</th><th>Aksi</th></tr></thead>
+                    <tbody><?php foreach($itemTypes as $row): ?><tr><td><?= $row['id'] ?></td><td><?= $row['name'] ?></td><td><a href="?delete_item_type=<?= $row['id'] ?>&tab=item_types" class="btn btn-sm btn-danger" onclick="return confirm('Hapus?')">Hapus</a></td></tr><?php endforeach; ?></tbody>
+                </table>
+            </div>
         <?php elseif($tab == 'items'): ?>
             <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#modalItem">+ Tambah Item</button>
-            <table class="table table-bordered"><thead class="table-light"><tr><th>ID</th><th>Nama</th><th>Tipe</th><th>Deskripsi</th><th>Aksi</th></tr></thead>
-            <tbody><?php foreach($items as $row): ?><tr><td><?= $row['id'] ?></td><td><?= $row['name'] ?></td><td><?= $row['type_name'] ?></td><td><?= $row['description'] ?></td><td><a href="?delete_item=<?= $row['id'] ?>&tab=items" class="btn btn-sm btn-danger" onclick="return confirm('Hapus?')">Hapus</a></td></table><?php endforeach; ?></tbody><td>
+            <div class="table-responsive-custom">
+                <table class="table table-bordered">
+                    <thead class="table-light"><tr><th>ID</th><th>Nama</th><th>Tipe</th><th>Deskripsi</th><th>Aksi</th></tr></thead>
+                    <tbody><?php foreach($items as $row): ?><tr><td><?= $row['id'] ?></td><td><?= $row['name'] ?></td><td><?= $row['type_name'] ?></td><td><?= $row['description'] ?></td><td><a href="?delete_item=<?= $row['id'] ?>&tab=items" class="btn btn-sm btn-danger" onclick="return confirm('Hapus?')">Hapus</a></td></tr><?php endforeach; ?></tbody>
+                </table>
+            </div>
         <?php elseif($tab == 'buildings'): ?>
             <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#modalBuilding">+ Tambah Gedung</button>
-            <table class="table table-bordered"><thead class="table-light"><tr><th>ID</th><th>Nama Gedung</th><th>Aksi</th></tr></thead>
-            <tbody><?php foreach($buildings as $row): ?><tr><td><?= $row['id'] ?></td><td><?= $row['name'] ?></td><td><a href="?delete_building=<?= $row['id'] ?>&tab=buildings" class="btn btn-sm btn-danger" onclick="return confirm('Hapus?')">Hapus</a></td></tr><?php endforeach; ?></tbody></table>
+            <div class="table-responsive-custom">
+                <table class="table table-bordered">
+                    <thead class="table-light"><tr><th>ID</th><th>Nama Gedung</th><th>Aksi</th></tr></thead>
+                    <tbody><?php foreach($buildings as $row): ?><tr><td><?= $row['id'] ?></td><td><?= $row['name'] ?></td><td><a href="?delete_building=<?= $row['id'] ?>&tab=buildings" class="btn btn-sm btn-danger" onclick="return confirm('Hapus?')">Hapus</a></td></tr><?php endforeach; ?></tbody>
+                </table>
+            </div>
         <?php else: ?>
             <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#modalRoom">+ Tambah Ruangan</button>
-            <table class="table table-bordered"><thead class="table-light"><tr><th>ID</th><th>Nama Ruangan</th><th>Gedung</th><th>Aksi</th></tr></thead>
-            <tbody><?php foreach($rooms as $row): ?><tr><td><?= $row['id'] ?></td><td><?= $row['name'] ?></tr><td><?= $row['building_name'] ?></td><td><a href="?delete_room=<?= $row['id'] ?>&tab=rooms" class="btn btn-sm btn-danger" onclick="return confirm('Hapus?')">Hapus</a></td></tr><?php endforeach; ?></tbody></table>
+            <div class="table-responsive-custom">
+                <table class="table table-bordered">
+                    <thead class="table-light"><tr><th>ID</th><th>Nama Ruangan</th><th>Gedung</th><th>Aksi</th></tr></thead>
+                    <tbody><?php foreach($rooms as $row): ?><tr><td><?= $row['id'] ?></td><td><?= $row['name'] ?></td><td><?= $row['building_name'] ?></td><td><a href="?delete_room=<?= $row['id'] ?>&tab=rooms" class="btn btn-sm btn-danger" onclick="return confirm('Hapus?')">Hapus</a></td></tr><?php endforeach; ?></tbody>
+                </table>
+            </div>
         <?php endif; ?>
     </div>
 </div>
 
 <!-- Modal -->
-<div class="modal fade" id="modalItemType"><div class="modal-dialog"><div class="modal-content"><form method="POST"><div class="modal-header"><h5>Tambah Item Type</h5></div><div class="modal-body"><input type="text" name="name" class="form-control" required></div><div class="modal-footer"><button type="submit" name="add_item_type" class="btn btn-primary">Simpan</button></div></form></div></div></div>
-<div class="modal fade" id="modalItem"><div class="modal-dialog"><div class="modal-content"><form method="POST"><div class="modal-header"><h5>Tambah Item</h5></div><div class="modal-body"><select name="item_type_id" class="form-control mb-2" required><option value="">Pilih Tipe</option><?php foreach($itemTypes as $t) echo "<option value='{$t['id']}'>{$t['name']}</option>"; ?></select><input type="text" name="name" class="form-control mb-2" placeholder="Nama Item" required><textarea name="description" class="form-control" placeholder="Deskripsi"></textarea></div><div class="modal-footer"><button type="submit" name="add_item" class="btn btn-primary">Simpan</button></div></form></div></div></div>
-<div class="modal fade" id="modalBuilding"><div class="modal-dialog"><div class="modal-content"><form method="POST"><div class="modal-header"><h5>Tambah Gedung</h5></div><div class="modal-body"><input type="text" name="name" class="form-control" required></div><div class="modal-footer"><button type="submit" name="add_building" class="btn btn-primary">Simpan</button></div></form></div></div></div>
-<div class="modal fade" id="modalRoom"><div class="modal-dialog"><div class="modal-content"><form method="POST"><div class="modal-header"><h5>Tambah Ruangan</h5></div><div class="modal-body"><select name="building_id" class="form-control mb-2" required><option value="">Pilih Gedung</option><?php foreach($buildings as $b) echo "<option value='{$b['id']}'>{$b['name']}</option>"; ?></select><input type="text" name="name" class="form-control" placeholder="Nama Ruangan" required></div><div class="modal-footer"><button type="submit" name="add_room" class="btn btn-primary">Simpan</button></div></form></div></div></div>
+<div class="modal fade" id="modalItemType"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><form method="POST"><div class="modal-header"><h5>Tambah Item Type</h5></div><div class="modal-body"><input type="text" name="name" class="form-control" required></div><div class="modal-footer"><button type="submit" name="add_item_type" class="btn btn-primary">Simpan</button></div></form></div></div></div>
+<div class="modal fade" id="modalItem"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><form method="POST"><div class="modal-header"><h5>Tambah Item</h5></div><div class="modal-body"><select name="item_type_id" class="form-control mb-2" required><option value="">Pilih Tipe</option><?php foreach($itemTypes as $t) echo "<option value='{$t['id']}'>{$t['name']}</option>"; ?></select><input type="text" name="name" class="form-control mb-2" placeholder="Nama Item" required><textarea name="description" class="form-control" placeholder="Deskripsi"></textarea></div><div class="modal-footer"><button type="submit" name="add_item" class="btn btn-primary">Simpan</button></div></form></div></div></div>
+<div class="modal fade" id="modalBuilding"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><form method="POST"><div class="modal-header"><h5>Tambah Gedung</h5></div><div class="modal-body"><input type="text" name="name" class="form-control" required></div><div class="modal-footer"><button type="submit" name="add_building" class="btn btn-primary">Simpan</button></div></form></div></div></div>
+<div class="modal fade" id="modalRoom"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><form method="POST"><div class="modal-header"><h5>Tambah Ruangan</h5></div><div class="modal-body"><select name="building_id" class="form-control mb-2" required><option value="">Pilih Gedung</option><?php foreach($buildings as $b) echo "<option value='{$b['id']}'>{$b['name']}</option>"; ?></select><input type="text" name="name" class="form-control" placeholder="Nama Ruangan" required></div><div class="modal-footer"><button type="submit" name="add_room" class="btn btn-primary">Simpan</button></div></form></div></div></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

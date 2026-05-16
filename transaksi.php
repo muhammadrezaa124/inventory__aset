@@ -12,8 +12,8 @@ if(isset($_POST['add_transaction'])) {
     if(isset($_FILES['evidence']) && $_FILES['evidence']['error'] == 0) {
         $evidence = uploadFile($_FILES['evidence'], 'uploads/bukti/');
     }
-    $stmt = $pdo->prepare("INSERT INTO t_inventory_transactions (transaction_number, transaction_date, transaction_type_id, total_budget, budget_realization, source_of_funds, evidence_file, notes, status) VALUES (?,?,?,?,?,?,?,?,?)");
-    $stmt->execute([$trans_number, $_POST['date'], $_POST['type_id'], $_POST['total_budget'], $_POST['realization'], $_POST['source_of_funds'], $evidence, $_POST['notes'], 'approved']);
+    $stmt = $pdo->prepare("INSERT INTO t_inventory_transactions (transaction_number, transaction_date, transaction_type_id, budget, realization, evidence_file, notes) VALUES (?,?,?,?,?,?,?)");
+    $stmt->execute([$trans_number, $_POST['date'], $_POST['type_id'], $_POST['total_budget'], $_POST['realization'], $evidence, $_POST['notes']]);
     $trans_id = $pdo->lastInsertId();
     
     $item_ids = $_POST['item_id'];
@@ -22,16 +22,13 @@ if(isset($_POST['add_transaction'])) {
     
     for($i = 0; $i < count($item_ids); $i++) {
         $pdo->prepare("INSERT INTO t_inventory_transaction_details (transaction_id, inventory_id, quantity, price) VALUES (?,?,?,?)")->execute([$trans_id, $item_ids[$i], $quantities[$i], $prices[$i]]);
-        // Update stok: jenis 1=Pembelian, 2=Hibah -> tambah; lainnya -> kurang
         if($_POST['type_id'] == 1 || $_POST['type_id'] == 2) {
             $pdo->prepare("UPDATE t_inventory SET total_quantity = total_quantity + ? WHERE id = ?")->execute([$quantities[$i], $item_ids[$i]]);
         } else {
-            // validasi stok cukup
             $check = $pdo->prepare("SELECT total_quantity FROM t_inventory WHERE id=?");
             $check->execute([$item_ids[$i]]);
             $stokSekarang = $check->fetchColumn();
             if($stokSekarang < $quantities[$i]) {
-                // rollback transaksi
                 $pdo->prepare("DELETE FROM t_inventory_transactions WHERE id=?")->execute([$trans_id]);
                 die("<script>alert('Stok tidak mencukupi untuk barang tertentu!'); window.location.href='transaksi.php';</script>");
             }
@@ -42,10 +39,9 @@ if(isset($_POST['add_transaction'])) {
     exit;
 }
 
-// Hapus transaksi (rollback stok)
+// Hapus transaksi
 if(isset($_GET['delete'])) {
     $id = $_GET['delete'];
-    // ambil detail
     $details = $pdo->prepare("SELECT inventory_id, quantity FROM t_inventory_transaction_details WHERE transaction_id=?");
     $details->execute([$id]);
     $trans = $pdo->prepare("SELECT transaction_type_id FROM t_inventory_transactions WHERE id=?");
@@ -53,10 +49,8 @@ if(isset($_GET['delete'])) {
     $type_id = $trans->fetchColumn();
     foreach($details as $det) {
         if($type_id == 1 || $type_id == 2) {
-            // pembelian/hibah -> kurangi stok
             $pdo->prepare("UPDATE t_inventory SET total_quantity = total_quantity - ? WHERE id = ?")->execute([$det['quantity'], $det['inventory_id']]);
         } else {
-            // penghapusan/mutasi -> tambah stok
             $pdo->prepare("UPDATE t_inventory SET total_quantity = total_quantity + ? WHERE id = ?")->execute([$det['quantity'], $det['inventory_id']]);
         }
     }
@@ -71,6 +65,7 @@ $transactions = $pdo->query("SELECT t.*, tt.name as type_name FROM t_inventory_t
 <html lang="id">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Transaksi</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -96,11 +91,22 @@ $transactions = $pdo->query("SELECT t.*, tt.name as type_name FROM t_inventory_t
             background: white; border-radius: 15px; padding: 20px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.08); margin-bottom: 20px;
         }
+        .table-responsive-custom {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
         @media (max-width: 768px) {
             .sidebar { width: 70px; }
             .sidebar .nav-link span { display: none; }
             .sidebar-header h4 { display: none; }
-            .main-content { margin-left: 70px; }
+            .main-content { margin-left: 70px; padding: 15px; }
+        }
+        @media (max-width: 576px) {
+            .main-content { padding: 10px; }
+            .form-container, .table-container { padding: 15px; }
+            .item-row .col-md-5, .item-row .col-md-3, .item-row .col-md-3, .item-row .col-md-1 {
+                margin-bottom: 10px;
+            }
         }
     </style>
 </head>
@@ -126,20 +132,19 @@ $transactions = $pdo->query("SELECT t.*, tt.name as type_name FROM t_inventory_t
         <h5>Input Transaksi Baru</h5>
         <form method="POST" enctype="multipart/form-data" id="transForm">
             <div class="row g-3 mb-3">
-                <div class="col-md-3"><input type="date" name="date" class="form-control" value="<?= date('Y-m-d') ?>" required></div>
-                <div class="col-md-3"><select name="type_id" class="form-control" required><option value="">Jenis</option><?php foreach($transTypes as $t) echo "<option value='{$t['id']}'>{$t['name']}</option>"; ?></select></div>
-                <div class="col-md-3"><input type="text" name="source_of_funds" class="form-control" placeholder="Sumber Dana"></div>
-                <div class="col-md-3"><input type="number" name="total_budget" class="form-control" placeholder="Total Anggaran"></div>
-                <div class="col-md-3"><input type="number" name="realization" class="form-control" placeholder="Realisasi"></div>
-                <div class="col-md-12"><textarea name="notes" class="form-control" rows="2" placeholder="Catatan"></textarea></div>
-                <div class="col-md-12"><input type="file" name="evidence" class="form-control" accept="image/*,application/pdf"></div>
+                <div class="col-12 col-md-3"><input type="date" name="date" class="form-control" value="<?= date('Y-m-d') ?>" required></div>
+                <div class="col-12 col-md-3"><select name="type_id" class="form-control" required><option value="">Jenis</option><?php foreach($transTypes as $t) echo "<option value='{$t['id']}'>{$t['name']}</option>"; ?></select></div>
+                <div class="col-12 col-md-3"><input type="number" name="total_budget" class="form-control" placeholder="Total Anggaran" value="0"></div>
+                <div class="col-12 col-md-3"><input type="number" name="realization" class="form-control" placeholder="Realisasi" value="0"></div>
+                <div class="col-12"><textarea name="notes" class="form-control" rows="2" placeholder="Catatan"></textarea></div>
+                <div class="col-12"><input type="file" name="evidence" class="form-control" accept="image/*,application/pdf"></div>
             </div>
             <div id="itemsContainer">
-                <div class="row item-row g-2 mb-2">
-                    <div class="col-md-5"><select name="item_id[]" class="form-control" required><option value="">Pilih Barang</option><?php foreach($inventory as $i) echo "<option value='{$i['id']}'>{$i['barcode']} - {$i['item_name']} (Stok: {$i['total_quantity']})</option>"; ?></select></div>
-                    <div class="col-md-3"><input type="number" name="quantity[]" class="form-control" placeholder="Jumlah" required></div>
-                    <div class="col-md-3"><input type="number" step="0.01" name="price[]" class="form-control" placeholder="Harga" required></div>
-                    <div class="col-md-1"><button type="button" class="btn btn-danger remove-item">Hapus</button></div>
+                <div class="row item-row g-2 mb-2 align-items-end">
+                    <div class="col-12 col-md-5"><select name="item_id[]" class="form-control" required><option value="">Pilih Barang</option><?php foreach($inventory as $i) echo "<option value='{$i['id']}'>{$i['barcode']} - {$i['item_name']} (Stok: {$i['total_quantity']})</option>"; ?></select></div>
+                    <div class="col-12 col-md-3"><input type="number" name="quantity[]" class="form-control" placeholder="Jumlah" required></div>
+                    <div class="col-12 col-md-3"><input type="number" step="0.01" name="price[]" class="form-control" placeholder="Harga" required></div>
+                    <div class="col-12 col-md-1"><button type="button" class="btn btn-danger remove-item w-100">Hapus</button></div>
                 </div>
             </div>
             <button type="button" class="btn btn-secondary btn-sm mb-3" id="addItemBtn">+ Tambah Barang</button>
@@ -148,25 +153,26 @@ $transactions = $pdo->query("SELECT t.*, tt.name as type_name FROM t_inventory_t
     </div>
     
     <div class="table-container">
-        <table class="table table-bordered">
-            <thead class="table-light">
-                <tr><th>No. Transaksi</th><th>Tanggal</th><th>Jenis</th><th>Sumber Dana</th><th>Anggaran</th><th>Realisasi</th><th>Bukti</th><th>Aksi</th></tr>
-            </thead>
-            <tbody>
-                <?php foreach($transactions as $row): ?>
-                <tr>
-                    <td><?= $row['transaction_number'] ?></td>
-                    <td><?= date('d/m/Y', strtotime($row['transaction_date'])) ?></td>
-                    <td><?= $row['type_name'] ?></td>
-                    <td><?= $row['source_of_funds'] ?></td>
-                    <td><?= rupiah($row['total_budget']) ?></td>
-                    <td><?= rupiah($row['budget_realization']) ?></td>
-                    <td><?php if($row['evidence_file']) echo "<a href='uploads/bukti/".$row['evidence_file']."' target='_blank'>Lihat</a>"; else echo "-"; ?></td>
-                    <td><a href="?delete=<?= $row['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Hapus transaksi? Stok akan dikembalikan.')">Hapus</a></td>
-                </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+        <div class="table-responsive-custom">
+            <table class="table table-bordered">
+                <thead class="table-light">
+                    <tr><th>No. Transaksi</th><th>Tanggal</th><th>Jenis</th><th>Anggaran</th><th>Realisasi</th><th>Bukti</th><th>Aksi</th></tr>
+                </thead>
+                <tbody>
+                    <?php foreach($transactions as $row): ?>
+                    <tr>
+                        <td><?= $row['transaction_number'] ?></td>
+                        <td><?= date('d/m/Y', strtotime($row['transaction_date'])) ?></td>
+                        <td><?= $row['type_name'] ?></td>
+                        <td><?= rupiah($row['budget']) ?></td>
+                        <td><?= rupiah($row['realization']) ?></td>
+                        <td><?php if($row['evidence_file']) echo "<a href='uploads/bukti/".$row['evidence_file']."' target='_blank'>Lihat</a>"; else echo "-"; ?></td>
+                        <td><a href="?delete=<?= $row['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Hapus transaksi? Stok akan dikembalikan.')">Hapus</a></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 

@@ -37,6 +37,7 @@ if($role == 'admin') {
 <html lang="id">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Distribusi Barang</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -61,11 +62,19 @@ if($role == 'admin') {
             background: white; border-radius: 15px; padding: 20px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.08); margin-bottom: 20px;
         }
+        .table-responsive-custom {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
         @media (max-width: 768px) {
             .sidebar { width: 70px; }
             .sidebar .nav-link span { display: none; }
             .sidebar-header h4 { display: none; }
-            .main-content { margin-left: 70px; }
+            .main-content { margin-left: 70px; padding: 15px; }
+        }
+        @media (max-width: 576px) {
+            .main-content { padding: 10px; }
+            .form-container .row > div { margin-bottom: 10px; }
         }
     </style>
 </head>
@@ -92,34 +101,36 @@ if($role == 'admin') {
     <?php if($role == 'admin'): ?>
     <div class="form-container">
         <form method="POST" class="row g-3">
-            <div class="col-md-4"><select name="inventory_id" class="form-control" required><option value="">Pilih Barang</option><?php foreach($inventory as $i) echo "<option value='{$i['id']}'>{$i['barcode']} - {$i['item_name']} (Stok: {$i['total_quantity']})</option>"; ?></select></div>
-            <div class="col-md-4"><select name="room_id" class="form-control" required><option value="">Pilih Ruangan</option><?php foreach($rooms as $r) echo "<option value='{$r['id']}'>{$r['building_name']} - {$r['name']} (Lantai {$r['floor']})</option>"; ?></select></div>
-            <div class="col-md-2"><input type="number" name="quantity" class="form-control" placeholder="Jumlah" required></div>
-            <div class="col-md-2"><button type="submit" name="assign" class="btn btn-primary w-100">Distribusikan</button></div>
+            <div class="col-12 col-md-4"><select name="inventory_id" class="form-control" required><option value="">Pilih Barang</option><?php foreach($inventory as $i) echo "<option value='{$i['id']}'>{$i['barcode']} - {$i['item_name']} (Stok: {$i['total_quantity']})</option>"; ?></select></div>
+            <div class="col-12 col-md-4"><select name="room_id" class="form-control" required><option value="">Pilih Ruangan</option><?php foreach($rooms as $r) echo "<option value='{$r['id']}'>{$r['building_name']} - {$r['name']}</option>"; ?></select></div>
+            <div class="col-12 col-md-2"><input type="number" name="quantity" class="form-control" placeholder="Jumlah" required></div>
+            <div class="col-12 col-md-2"><button type="submit" name="assign" class="btn btn-primary w-100">Distribusikan</button></div>
         </form>
     </div>
     <?php endif; ?>
     
     <div class="table-container">
-        <table class="table table-bordered">
-            <thead class="table-light">
-                <tr><th>Barcode</th><th>Nama Barang</th><th>Gedung</th><th>Ruangan</th><th>Jumlah</th><?php if($role=='admin') echo '<th>Aksi</th>'; ?></tr>
-            </thead>
-            <tbody>
-                <?php foreach($distributions as $row): ?>
-                <tr>
-                    <td><?= $row['barcode'] ?></td>
-                    <td><?= $row['item_name'] ?></td>
-                    <td><?= $row['building_name'] ?></td>
-                    <td><?= $row['room_name'] ?></td>
-                    <td><?= number_format($row['quantity']) ?></td>
-                    <?php if($role=='admin'): ?>
-                    <td><a href="?delete=<?= $row['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Hapus distribusi?')">Hapus</a></td>
-                    <?php endif; ?>
-                </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+        <div class="table-responsive-custom">
+            <table class="table table-bordered">
+                <thead class="table-light">
+                    <tr><th>Barcode</th><th>Nama Barang</th><th>Gedung</th><th>Ruangan</th><th>Jumlah</th><?php if($role=='admin') echo '<th>Aksi</th>'; ?></tr>
+                </thead>
+                <tbody>
+                    <?php foreach($distributions as $row): ?>
+                    <tr>
+                        <td><?= $row['barcode'] ?></td>
+                        <td><?= $row['item_name'] ?></td>
+                        <td><?= $row['building_name'] ?></td>
+                        <td><?= $row['room_name'] ?></td>
+                        <td><?= number_format($row['quantity']) ?></td>
+                        <?php if($role=='admin'): ?>
+                        <td><a href="?delete=<?= $row['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Hapus distribusi?')">Hapus</a></td>
+                        <?php endif; ?>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

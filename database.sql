@@ -4,8 +4,8 @@
 -- ======================================================
 
 -- 1. Buat database (jika belum ada)
-CREATE DATABASE IF NOT EXISTS inventori_db;
-USE inventori_db;
+--CREATE DATABASE IF NOT EXISTS inventori_db;
+--USE inventori_db;
 
 -- ======================================================
 -- 2. Tabel Master Data

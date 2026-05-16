@@ -76,22 +76,47 @@ if(isset($_GET['edit'])) {
 <html lang="id">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Kelola Inventory</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: #f0f2f5; }
-        .sidebar { /* sama seperti sebelumnya */ position: fixed; top: 0; left: 0; height: 100%; width: 280px; background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%); color: white; }
+        .sidebar {
+            position: fixed; top: 0; left: 0; height: 100%; width: 280px;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+        }
         .sidebar-header { padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
         .sidebar-header i { font-size: 2.5rem; color: #00b4d8; }
-        .sidebar .nav-link { color: rgba(255,255,255,0.8); padding: 12px 25px; display: flex; align-items: center; gap: 12px; text-decoration: none; }
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.8); padding: 12px 25px;
+            display: flex; align-items: center; gap: 12px; text-decoration: none;
+        }
         .sidebar .nav-link:hover { background: rgba(0,180,216,0.2); }
         .sidebar .nav-link.active { background: #00b4d8; }
         .main-content { margin-left: 280px; padding: 20px; }
-        .table-container, .form-container { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); margin-bottom: 20px; }
-        @media (max-width: 768px) { .sidebar { width: 70px; } .sidebar .nav-link span { display: none; } .sidebar-header h4 { display: none; } .main-content { margin-left: 70px; } }
+        .table-container, .form-container {
+            background: white; border-radius: 15px; padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08); margin-bottom: 20px;
+        }
         img.preview { max-width: 50px; max-height: 50px; border-radius: 5px; }
+        .table-responsive-custom {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        @media (max-width: 768px) {
+            .sidebar { width: 70px; }
+            .sidebar .nav-link span { display: none; }
+            .sidebar-header h4 { display: none; }
+            .main-content { margin-left: 70px; padding: 15px; }
+        }
+        @media (max-width: 576px) {
+            .main-content { padding: 10px; }
+            .form-container, .table-container { padding: 15px; }
+            .btn { font-size: 0.85rem; }
+        }
     </style>
 </head>
 <body>
@@ -115,12 +140,12 @@ if(isset($_GET['edit'])) {
     <div class="form-container">
         <h5>Tambah Stok Barang</h5>
         <form method="POST" enctype="multipart/form-data" class="row g-3">
-            <div class="col-md-5"><select name="item_id" class="form-control" required><option value="">Pilih Barang</option><?php foreach($items as $item) echo "<option value='{$item['id']}'>{$item['name']}</option>"; ?></select></div>
-            <div class="col-md-2"><input type="number" name="quantity" class="form-control" placeholder="Jumlah" required></div>
-            <div class="col-md-3"><input type="number" step="0.01" name="price" class="form-control" placeholder="Harga" required></div>
-            <div class="col-md-2"><input type="date" name="expired_date" class="form-control" placeholder="Expired Date"></div>
-            <div class="col-md-12"><input type="file" name="image" class="form-control" accept="image/*"></div>
-            <div class="col-md-12"><button type="submit" name="add_stock" class="btn btn-primary">+ Tambah Stok</button></div>
+            <div class="col-12 col-md-5"><select name="item_id" class="form-control" required><option value="">Pilih Barang</option><?php foreach($items as $item) echo "<option value='{$item['id']}'>{$item['name']}</option>"; ?></select></div>
+            <div class="col-12 col-md-2"><input type="number" name="quantity" class="form-control" placeholder="Jumlah" required></div>
+            <div class="col-12 col-md-3"><input type="number" step="0.01" name="price" class="form-control" placeholder="Harga" required></div>
+            <div class="col-12 col-md-2"><input type="date" name="expired_date" class="form-control" placeholder="Expired Date"></div>
+            <div class="col-12"><input type="file" name="image" class="form-control" accept="image/*"></div>
+            <div class="col-12"><button type="submit" name="add_stock" class="btn btn-primary w-100 w-md-auto">+ Tambah Stok</button></div>
         </form>
     </div>
     
@@ -129,37 +154,39 @@ if(isset($_GET['edit'])) {
         <h5>Edit Stok Barang</h5>
         <form method="POST" enctype="multipart/form-data" class="row g-3">
             <input type="hidden" name="id" value="<?= $editData['id'] ?>">
-            <div class="col-md-2"><input type="number" name="quantity" class="form-control" value="<?= $editData['total_quantity'] ?>" required></div>
-            <div class="col-md-2"><input type="number" step="0.01" name="price" class="form-control" value="<?= $editData['price'] ?>" required></div>
-            <div class="col-md-2"><input type="date" name="expired_date" class="form-control" value="<?= $editData['expired_date'] ?>"></div>
-            <div class="col-md-2"><select name="status" class="form-control"><option value="good" <?= $editData['status']=='good'?'selected':'' ?>>Good</option><option value="damaged" <?= $editData['status']=='damaged'?'selected':'' ?>>Damaged</option><option value="expired" <?= $editData['status']=='expired'?'selected':'' ?>>Expired</option></select></div>
-            <div class="col-md-12"><input type="file" name="image" class="form-control" accept="image/*"> <?php if($editData['image']) echo "<img src='uploads/barang/".$editData['image']."' class='preview mt-2'>"; ?></div>
-            <div class="col-md-12"><button type="submit" name="update_stock" class="btn btn-warning">Update Stok</button></div>
+            <div class="col-12 col-md-3"><input type="number" name="quantity" class="form-control" value="<?= $editData['total_quantity'] ?>" required></div>
+            <div class="col-12 col-md-3"><input type="number" step="0.01" name="price" class="form-control" value="<?= $editData['price'] ?>" required></div>
+            <div class="col-12 col-md-3"><input type="date" name="expired_date" class="form-control" value="<?= $editData['expired_date'] ?>"></div>
+            <div class="col-12 col-md-3"><select name="status" class="form-control"><option value="good" <?= $editData['status']=='good'?'selected':'' ?>>Good</option><option value="damaged" <?= $editData['status']=='damaged'?'selected':'' ?>>Damaged</option><option value="expired" <?= $editData['status']=='expired'?'selected':'' ?>>Expired</option></select></div>
+            <div class="col-12"><input type="file" name="image" class="form-control" accept="image/*"> <?php if($editData['image']) echo "<img src='uploads/barang/".$editData['image']."' class='preview mt-2'>"; ?></div>
+            <div class="col-12"><button type="submit" name="update_stock" class="btn btn-warning">Update Stok</button></div>
         </form>
     </div>
     <?php endif; ?>
     
     <div class="table-container">
-        <table class="table table-bordered">
-            <thead class="table-light">
-                <tr><th>Barcode</th><th>Nama Barang</th><th>Tipe</th><th>Stok</th><th>Harga</th><th>Expired</th><th>Status</th><th>Foto</th><th>Aksi</th></tr>
-            </thead>
-            <tbody>
-                <?php foreach($inventory as $row): ?>
-                <tr>
-                    <td><code><?= $row['barcode'] ?></code></td>
-                    <td><?= $row['item_name'] ?></td>
-                    <td><?= $row['type_name'] ?></td>
-                    <td><?= number_format($row['total_quantity']) ?></td>
-                    <td><?= rupiah($row['price']) ?></td>
-                    <td><?= $row['expired_date'] ? date('d/m/Y',strtotime($row['expired_date'])) : '-' ?></td>
-                    <td><?= statusBadge($row['status']) ?></td>
-                    <td><?php if($row['image']) echo "<img src='uploads/barang/".$row['image']."' class='preview'>"; else echo "-"; ?></td>
-                    <td><a href="?edit=<?= $row['id'] ?>" class="btn btn-sm btn-warning">Edit</a> <a href="?delete=<?= $row['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Yakin?')">Hapus</a></td>
-                </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+        <div class="table-responsive-custom">
+            <table class="table table-bordered">
+                <thead class="table-light">
+                    <tr><th>Barcode</th><th>Nama Barang</th><th>Tipe</th><th>Stok</th><th>Harga</th><th>Expired</th><th>Status</th><th>Foto</th><th>Aksi</th></tr>
+                </thead>
+                <tbody>
+                    <?php foreach($inventory as $row): ?>
+                    <tr>
+                        <td><code><?= $row['barcode'] ?></code></td>
+                        <td><?= $row['item_name'] ?></td>
+                        <td><?= $row['type_name'] ?></td>
+                        <td><?= number_format($row['total_quantity']) ?></td>
+                        <td><?= rupiah($row['price']) ?></td>
+                        <td><?= $row['expired_date'] ? date('d/m/Y',strtotime($row['expired_date'])) : '-' ?></td>
+                        <td><?= statusBadge($row['status']) ?></td>
+                        <td><?php if($row['image']) echo "<img src='uploads/barang/".$row['image']."' class='preview'>"; else echo "-"; ?></td>
+                        <td><a href="?edit=<?= $row['id'] ?>" class="btn btn-sm btn-warning">Edit</a> <a href="?delete=<?= $row['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Yakin?')">Hapus</a></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

@@ -1,5 +1,7 @@
 <?php
 require_once 'config.php';
+$role = $_SESSION['role']; // ambil role dari session
+
 $locations = $pdo->query("
     SELECT b.name as building, r.name as room, COALESCE(SUM(d.quantity),0) as total
     FROM m_buildings b
@@ -55,9 +57,11 @@ foreach($locations as $loc) {
     <div class="sidebar-header"><i class="fas fa-boxes"></i><h4>Inventory Aset</h4></div>
     <nav>
         <a class="nav-link" href="index.php"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a>
-        <a class="nav-link" href="master.php"><i class="fas fa-database"></i> <span>Master Data</span></a>
-        <a class="nav-link" href="inventory.php"><i class="fas fa-boxes"></i> <span>Kelola Inventory</span></a>
-        <a class="nav-link" href="transaksi.php"><i class="fas fa-exchange-alt"></i> <span>Transaksi</span></a>
+        <?php if($role == 'admin'): ?>
+            <a class="nav-link" href="master.php"><i class="fas fa-database"></i> <span>Master Data</span></a>
+            <a class="nav-link" href="inventory.php"><i class="fas fa-boxes"></i> <span>Kelola Inventory</span></a>
+            <a class="nav-link" href="transaksi.php"><i class="fas fa-exchange-alt"></i> <span>Transaksi</span></a>
+        <?php endif; ?>
         <a class="nav-link" href="distribusi.php"><i class="fas fa-location-dot"></i> <span>Distribusi Barang</span></a>
         <a class="nav-link active" href="monitoring.php"><i class="fas fa-map-marker-alt"></i> <span>Monitoring Lokasi</span></a>
         <a class="nav-link" href="laporan.php"><i class="fas fa-chart-line"></i> <span>Laporan</span></a>
@@ -74,7 +78,10 @@ foreach($locations as $loc) {
                 <thead class="table-light"><tr><th>Ruangan</th><th>Total Barang</th></tr></thead>
                 <tbody>
                     <?php foreach($rooms as $room): ?>
-                    <tr><td><?= $room['room'] ?: '(Ruangan belum diberi nama)' ?></td><td><span class="badge bg-primary"><?= number_format($room['total']) ?> barang</span></td></tr>
+                    <tr>
+                        <td><?= $room['room'] ?: '(Ruangan belum diberi nama)' ?></td>
+                        <td><span class="badge bg-primary"><?= number_format($room['total']) ?> barang</span></td>
+                    </tr>
                     <?php endforeach; ?>
                 </tbody>
             </table>

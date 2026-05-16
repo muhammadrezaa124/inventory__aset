@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Login - Inventory Aset</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -34,6 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             align-items: center;
             justify-content: center;
             font-family: 'Segoe UI', sans-serif;
+            padding: 20px;
         }
         .login-card {
             width: 100%;
@@ -85,9 +86,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             font-size: 1.1rem;
             z-index: 10;
         }
-        .password-toggle:hover {
-            color: #333;
-        }
         .btn-login {
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             border: none;
@@ -105,6 +103,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             background: #f0f2f5;
             padding: 10px;
             border-radius: 10px;
+        }
+        @media (max-width: 480px) {
+            .login-header { padding: 25px 20px; }
+            .login-body { padding: 25px 20px; }
+            .login-header h3 { font-size: 1.5rem; }
         }
     </style>
 </head>
@@ -141,16 +144,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
         </div>
     </div>
-
     <script>
         const togglePassword = document.getElementById('togglePassword');
         const passwordInput = document.getElementById('password');
-        
         togglePassword.addEventListener('click', function () {
-            // Toggle type attribute
             const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
             passwordInput.setAttribute('type', type);
-            // Toggle icon
             this.querySelector('i').classList.toggle('fa-eye');
             this.querySelector('i').classList.toggle('fa-eye-slash');
         });

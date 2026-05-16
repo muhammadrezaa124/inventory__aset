@@ -1,5 +1,7 @@
 <?php
 require_once 'config.php';
+$role = $_SESSION['role']; // ambil role dari session
+
 $report = $_GET['report'] ?? 'stock';
 
 $stock = $pdo->query("
@@ -74,9 +76,11 @@ $budgetData = $pdo->query("
     <div class="sidebar-header"><i class="fas fa-boxes"></i><h4>Inventory Aset</h4></div>
     <nav>
         <a class="nav-link" href="index.php"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a>
-        <a class="nav-link" href="master.php"><i class="fas fa-database"></i> <span>Master Data</span></a>
-        <a class="nav-link" href="inventory.php"><i class="fas fa-boxes"></i> <span>Kelola Inventory</span></a>
-        <a class="nav-link" href="transaksi.php"><i class="fas fa-exchange-alt"></i> <span>Transaksi</span></a>
+        <?php if($role == 'admin'): ?>
+            <a class="nav-link" href="master.php"><i class="fas fa-database"></i> <span>Master Data</span></a>
+            <a class="nav-link" href="inventory.php"><i class="fas fa-boxes"></i> <span>Kelola Inventory</span></a>
+            <a class="nav-link" href="transaksi.php"><i class="fas fa-exchange-alt"></i> <span>Transaksi</span></a>
+        <?php endif; ?>
         <a class="nav-link" href="distribusi.php"><i class="fas fa-location-dot"></i> <span>Distribusi Barang</span></a>
         <a class="nav-link" href="monitoring.php"><i class="fas fa-map-marker-alt"></i> <span>Monitoring Lokasi</span></a>
         <a class="nav-link active" href="laporan.php"><i class="fas fa-chart-line"></i> <span>Laporan</span></a>
